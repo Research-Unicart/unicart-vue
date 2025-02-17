@@ -351,9 +351,13 @@ import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { CreditCard, ShoppingBag, Truck } from "lucide-vue-next";
 import { CartContext } from "@/context/CartContext";
+import { orderService } from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 
 const router = useRouter();
 const cartStore = CartContext();
+const isLoading = ref(false);
+const { user } = useAuth();
 
 const shippingMethod = ref("standard");
 const paymentMethod = ref("credit");
@@ -480,32 +484,58 @@ const handleSubmit = async (e) => {
   }
 
   errors.value = {};
+  isLoading.value = true;
+  errors.value = {};
 
-  const orderDetails = {
-    cart: cart.value,
-    subtotal: subtotal.value,
-    shipping: shipping.value,
-    tax: tax.value,
-    total: orderTotal.value,
-    email: formData.value.email,
-    shippingAddress: {
-      street: formData.value.street,
-      apartment: formData.value.apartment,
-      city: formData.value.city,
-      state: formData.value.state,
-      zip: formData.value.zip,
-    },
-    shippingMethod: shippingMethod.value,
-    customerInfo: {
-      firstName: formData.value.firstName,
-      lastName: formData.value.lastName,
-      phone: formData.value.phone,
-    },
-  };
+  try {
+    const orderDetails = {
+      cart: cart.value,
+      subtotal: subtotal.value,
+      shipping: shipping.value,
+      tax: tax.value,
+      total: orderTotal.value,
+      email: formData.value.email,
+      shippingAddress: {
+        street: formData.value.street,
+        apartment: formData.value.apartment,
+        city: formData.value.city,
+        state: formData.value.state,
+        zip: formData.value.zip,
+      },
+      shippingMethod: shippingMethod.value,
+      customerInfo: {
+        firstName: formData.value.firstName,
+        lastName: formData.value.lastName,
+        phone: formData.value.phone,
+      },
+    };
 
-  localStorage.setItem("lastOrder", JSON.stringify(orderDetails));
-  cartStore.clearCart();
-  router.push("/thank-you");
+    localStorage.setItem("lastOrder", JSON.stringify(orderDetails));
+
+    const orderData = {
+      userId: user?.user?.id,
+      cart: cart.value.map((item) => ({
+        productId: item.id,
+        quantity: item.quantity,
+        variationId: item.variation ? item.variation.id : null,
+      })),
+      paymentMethod: paymentMethod.value,
+      status: "Pending",
+      shippingAddress: orderDetails.shippingAddress,
+      customerInfo: orderDetails.customerInfo,
+    };
+    await orderService.createOrder(orderData);
+
+    cartStore.clearCart();
+    router.push("/thank-you");
+  } catch (error) {
+    console.error("Order placement error:", error);
+    errors.value.submit =
+      error.response?.data?.message ||
+      "An error occurred while placing your order";
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const goBack = () => window.history.back();

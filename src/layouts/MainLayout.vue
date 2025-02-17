@@ -33,7 +33,7 @@
                 {{ cartStore.cartItemCount }}
               </span>
             </router-link>
-            <router-link to="/account">
+            <router-link to="/profile">
               <user-icon class="h-6 w-6 text-gray-600 hover:text-gray-900" />
             </router-link>
           </nav>
