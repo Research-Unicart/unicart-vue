@@ -28,9 +28,9 @@
                 class="h-6 w-6 text-gray-600 hover:text-gray-900"
               />
               <span
-                class="absolute -top-2 -right-2 bg-blue-600 text-black rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                class="absolute -top-2 -right-2 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
               >
-                {{ cartStore.cartItemCount }}
+                {{ cartItemCount }}
               </span>
             </router-link>
             <router-link to="/profile">
@@ -112,7 +112,7 @@ import {
   User as UserIcon,
   Search as SearchIcon,
 } from "lucide-vue-next";
-import { CartContext } from "@/context/CartContext";
+import { useCart } from "@/context/CartContext";
 
 export default {
   name: "MainLayout",
@@ -123,7 +123,10 @@ export default {
   },
   setup() {
     const router = useRouter();
-    const cartStore = CartContext();
+    const { cart } = useCart();
+
+    const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+
     const searchQuery = ref("");
     const pages = ["Products", "Categories", "About Us", "Contact Us", "More"];
 
@@ -151,7 +154,7 @@ export default {
       customerServiceLinks,
       quickLinks,
       handleSearch,
-      cartStore,
+      cartItemCount,
     };
   },
 };
