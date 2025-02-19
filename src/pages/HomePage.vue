@@ -108,15 +108,6 @@ export default {
     const subscribeLoading = ref(false);
     const subscribeMessage = ref(null);
 
-    const safeJSONParse = (jsonString, fallback = {}) => {
-      try {
-        return JSON.parse(jsonString);
-      } catch (err) {
-        console.error("Error parsing JSON:", err);
-        return fallback;
-      }
-    };
-
     const fetchFeaturedProducts = async () => {
       loading.value = true;
       try {
@@ -125,8 +116,8 @@ export default {
           .filter((product) => product)
           .map((product) => ({
             ...product,
-            specs: safeJSONParse(product.specs),
-            images: safeJSONParse(product.images),
+            specs: product.specs,
+            images: product.images,
             rating: parseFloat(product.rating),
             base_price: parseFloat(product.base_price),
           }))
